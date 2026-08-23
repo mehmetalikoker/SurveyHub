@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>org.figensoft</groupId>
-    <artifactId>eanket</artifactId>
+    <groupId>org.ing</groupId>
+    <artifactId>surveyhub</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>e-anket</name>
-    <description>Figensoft e-anket - survey builder and mobile channel API</description>
+    <name>SurveyHub</name>
+    <description>SurveyHub - survey builder and mobile channel API</description>
 
     <properties>
         <java.version>24</java.version>

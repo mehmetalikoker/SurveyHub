@@ -14,3 +14,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+docs/
+
+# Local H2 database files
+/data/

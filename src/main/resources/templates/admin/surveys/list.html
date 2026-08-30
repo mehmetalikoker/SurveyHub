@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Anket Yönetimi - SurveyHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link th:href="@{/css/theme.css}" rel="stylesheet"/>
+</head>
+<body>
+<nav class="navbar ing-navbar mb-4">
+    <div class="container d-flex justify-content-between align-items-center" style="max-width: 880px;">
+        <div>
+            <a th:href="@{/admin}" class="navbar-brand mb-0" style="text-decoration: none;">SurveyHub</a>
+            <span class="navbar-text">Anket Yönetimi</span>
+        </div>
+        <form method="post" th:action="@{/logout}" class="mb-0">
+            <button type="submit" class="btn btn-link btn-sm ing-navbar-link">Çıkış</button>
+        </form>
+    </div>
+</nav>
+<div class="container pb-5" style="max-width: 880px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Anket Yönetimi</h1>
+        <a th:href="@{/admin/surveys/new}" class="btn btn-primary">+ Yeni Anket</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(surveys)}" class="text-center text-muted py-5">
+        Henüz anket oluşturulmadı.
+        <div class="mt-3">
+            <a th:href="@{/admin/surveys/new}" class="btn btn-primary">İlk Anketini Oluştur</a>
+        </div>
+    </div>
+
+    <div class="table-responsive" th:if="${!#lists.isEmpty(surveys)}">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Başlık</th>
+                <th>Durum</th>
+                <th>Soru</th>
+                <th>Oluşturulma</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="survey : ${surveys}">
+                <td th:text="${survey.title}">Anket Başlığı</td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${survey.status.name() == 'DRAFT'} ? 'bg-secondary' : (${survey.status.name() == 'PUBLISHED'} ? 'ing-badge-scale' : 'bg-dark')"
+                              th:text="${survey.status.label}">Taslak</span>
+                </td>
+                <td th:text="${#lists.size(survey.questions)}">0</td>
+                <td th:text="${#temporals.format(survey.createdAt, 'dd.MM.yyyy HH:mm')}">-</td>
+                <td class="text-end">
+                    <a th:href="@{/admin/surveys/{id}/questions/new(id=${survey.id})}"
+                       class="btn btn-sm btn-outline-primary"
+                       th:text="${survey.status.name() == 'DRAFT'} ? 'Devam Et' : 'Görüntüle'">Devam Et</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

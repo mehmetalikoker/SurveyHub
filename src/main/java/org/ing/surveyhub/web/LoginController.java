@@ -11,6 +11,11 @@ public class LoginController {
         return "login";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPassword() {
+        return "forgot-password";
+    }
+
     @GetMapping("/")
     public String home() {
         return "redirect:/admin/surveys/new";

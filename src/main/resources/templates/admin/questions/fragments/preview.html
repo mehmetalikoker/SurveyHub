@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="render(question)" class="card ing-preview-card mb-3">
+    <div class="card-header">
+        <strong th:text="${question.text}">Soru metni</strong>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            <span th:text="${question.type.label}">Tip</span>
+            <span th:if="${question.required}"> · Zorunlu</span>
+            <span th:if="${question.section}" th:text="' · ' + ${question.section}"></span>
+        </p>
+
+        <div th:switch="${question.type}">
+
+            <div th:case="${T(org.ing.surveyhub.domain.QuestionType).MULTIPLE_CHOICE}">
+                <div class="form-check" th:each="opt : ${question.options}"
+                     th:if="${opt != null and !#strings.isEmpty(opt)}">
+                    <input class="form-check-input" disabled
+                           th:type="${question.allowMultipleSelection} ? 'checkbox' : 'radio'"/>
+                    <label class="form-check-label" th:text="${opt}"></label>
+                </div>
+            </div>
+
+            <div th:case="${T(org.ing.surveyhub.domain.QuestionType).OPEN_ENDED}">
+                <textarea class="form-control" rows="2" disabled placeholder="Katılımcı burada yazacak..."></textarea>
+                <div class="form-text" th:if="${question.maxLength}"
+                     th:text="'Maks. ' + ${question.maxLength} + ' karakter'"></div>
+            </div>
+
+            <div th:case="${T(org.ing.surveyhub.domain.QuestionType).LIKERT}"
+                 class="d-flex justify-content-between align-items-center gap-2">
+                <span class="small text-muted" th:text="${question.likertMinLabel}"></span>
+                <span>
+                    <span class="badge rounded-pill ing-badge-scale mx-1"
+                          th:each="i : ${#numbers.sequence(1, question.likertScale)}"
+                          th:text="${i}"></span>
+                </span>
+                <span class="small text-muted" th:text="${question.likertMaxLabel}"></span>
+            </div>
+
+            <div th:case="${T(org.ing.surveyhub.domain.QuestionType).RATING}">
+                <span class="fs-4 ing-rating-star" style="letter-spacing: 4px;"
+                      th:each="i : ${#numbers.sequence(question.minValue, question.maxValue)}">&#9733;</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

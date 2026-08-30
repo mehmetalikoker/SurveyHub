@@ -1,0 +1,77 @@
+/* SurveyHub - ING turuncusu temalı Bootstrap override */
+
+:root {
+    --ing-orange: #FF6200;
+    --ing-orange-dark: #CC4E00;
+    --ing-orange-light: #FFF1E6;
+
+    --bs-primary: var(--ing-orange);
+    --bs-primary-rgb: 255, 98, 0;
+    --bs-link-color: var(--ing-orange);
+    --bs-link-hover-color: var(--ing-orange-dark);
+    --bs-link-color-rgb: 255, 98, 0;
+    --bs-link-hover-color-rgb: 204, 78, 0;
+}
+
+body {
+    background-color: #F7F7F8;
+}
+
+/* Üst bar */
+.ing-navbar {
+    background-color: var(--ing-orange);
+}
+
+.ing-navbar .navbar-brand {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
+.ing-navbar .navbar-text {
+    color: rgba(255, 255, 255, .85);
+}
+
+/* Butonlar */
+.btn-primary {
+    --bs-btn-bg: var(--ing-orange);
+    --bs-btn-border-color: var(--ing-orange);
+    --bs-btn-hover-bg: var(--ing-orange-dark);
+    --bs-btn-hover-border-color: var(--ing-orange-dark);
+    --bs-btn-active-bg: var(--ing-orange-dark);
+    --bs-btn-active-border-color: var(--ing-orange-dark);
+    --bs-btn-focus-shadow-rgb: 255, 98, 0;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--ing-orange-dark);
+    --bs-btn-border-color: var(--ing-orange);
+    --bs-btn-hover-bg: var(--ing-orange);
+    --bs-btn-hover-border-color: var(--ing-orange);
+}
+
+/* Form kontrolleri */
+.form-check-input:checked {
+    background-color: var(--ing-orange);
+    border-color: var(--ing-orange);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ing-orange);
+    box-shadow: 0 0 0 .25rem rgba(255, 98, 0, .25);
+}
+
+/* Önizleme kartı */
+.ing-preview-card .card-header {
+    background-color: var(--ing-orange-light);
+    border-bottom: 1px solid var(--ing-orange);
+}
+
+.ing-badge-scale {
+    background-color: var(--ing-orange) !important;
+}
+
+.ing-rating-star {
+    color: var(--ing-orange);
+}

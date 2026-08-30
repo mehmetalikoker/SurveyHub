@@ -11,8 +11,8 @@
 <nav class="navbar ing-navbar mb-4">
     <div class="container d-flex justify-content-between align-items-center" style="max-width: 720px;">
         <div>
-            <span class="navbar-brand mb-0">SurveyHub</span>
-            <span class="navbar-text">Anket Yönetimi</span>
+            <a th:href="@{/admin}" class="navbar-brand mb-0" style="text-decoration: none;">SurveyHub</a>
+            <a th:href="@{/admin/surveys}" class="navbar-text" style="text-decoration: none;">Anket Yönetimi</a>
         </div>
         <form method="post" th:action="@{/logout}" class="mb-0">
             <button type="submit" class="btn btn-link btn-sm ing-navbar-link">Çıkış</button>

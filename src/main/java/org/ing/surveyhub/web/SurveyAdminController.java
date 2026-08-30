@@ -2,8 +2,10 @@ package org.ing.surveyhub.web;
 
 import org.ing.surveyhub.domain.Survey;
 import org.ing.surveyhub.exception.SurveyValidationException;
+import org.ing.surveyhub.repository.SurveyRepository;
 import org.ing.surveyhub.service.SurveyService;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +17,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class SurveyAdminController {
 
     private final SurveyService surveyService;
+    private final SurveyRepository surveyRepository;
 
-    public SurveyAdminController(SurveyService surveyService) {
+    public SurveyAdminController(SurveyService surveyService, SurveyRepository surveyRepository) {
         this.surveyService = surveyService;
+        this.surveyRepository = surveyRepository;
+    }
+
+    @GetMapping
+    public String list(Model model) {
+        model.addAttribute("surveys", surveyRepository.findAllWithQuestionsOrderByCreatedAtDesc());
+        return "admin/surveys/list";
     }
 
     @GetMapping("/new")

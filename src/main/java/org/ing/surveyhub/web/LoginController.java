@@ -18,6 +18,11 @@ public class LoginController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/admin/surveys/new";
+        return "redirect:/admin";
+    }
+
+    @GetMapping("/admin")
+    public String dashboard() {
+        return "admin/dashboard";
     }
 }

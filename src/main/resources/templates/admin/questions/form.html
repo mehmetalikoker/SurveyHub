@@ -9,9 +9,14 @@
 </head>
 <body>
 <nav class="navbar ing-navbar mb-4">
-    <div class="container" style="max-width: 720px;">
-        <span class="navbar-brand mb-0">SurveyHub</span>
-        <span class="navbar-text">Anket Yönetimi</span>
+    <div class="container d-flex justify-content-between align-items-center" style="max-width: 720px;">
+        <div>
+            <span class="navbar-brand mb-0">SurveyHub</span>
+            <span class="navbar-text">Anket Yönetimi</span>
+        </div>
+        <form method="post" th:action="@{/logout}" class="mb-0">
+            <button type="submit" class="btn btn-link btn-sm ing-navbar-link">Çıkış</button>
+        </form>
     </div>
 </nav>
 <div class="container pb-5" style="max-width: 720px;">

@@ -32,6 +32,15 @@ body {
     color: rgba(255, 255, 255, .85);
 }
 
+.ing-navbar-link {
+    color: rgba(255, 255, 255, .85);
+    text-decoration: none;
+}
+
+.ing-navbar-link:hover {
+    color: #fff;
+}
+
 /* Butonlar */
 .btn-primary {
     --bs-btn-bg: var(--ing-orange);

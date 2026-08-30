@@ -4,6 +4,7 @@ import org.ing.surveyhub.domain.QuestionType;
 import org.ing.surveyhub.domain.Survey;
 import org.ing.surveyhub.domain.SurveyStatus;
 import org.ing.surveyhub.exception.SurveyValidationException;
+import org.ing.surveyhub.repository.QuestionRepository;
 import org.ing.surveyhub.repository.SurveyRepository;
 import org.ing.surveyhub.web.form.QuestionForm;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,11 @@ class SurveyServiceTest {
     @Autowired
     private SurveyRepository surveyRepository;
 
+    @Autowired
+    private QuestionRepository questionRepository;
+
     private SurveyService service() {
-        return new SurveyService(surveyRepository);
+        return new SurveyService(surveyRepository, questionRepository);
     }
 
     @Test

@@ -15,46 +15,44 @@
     </div>
 </nav>
 <div class="container pb-5" style="max-width: 720px;">
-    <h1 class="h3 mb-1">Soru Ekle</h1>
-    <p class="text-muted mb-4">Anketine soru ekle, önizle ve bitince kaydet.</p>
+    <h1 class="h3 mb-1" th:text="${survey.title}">Soru Ekle</h1>
+    <p class="text-muted mb-4" th:if="${survey.description}" th:text="${survey.description}"></p>
 
-    <div class="alert alert-warning" th:if="${finishError}" th:text="${finishError}"></div>
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
 
-    <!-- Anket tamamlandıysa: özet göster, giriş formu gizli -->
-    <div th:if="${surveyFinished}">
+    <!-- Anket yayınlandıysa (artık DRAFT değil): özet göster, giriş formu gizli -->
+    <div th:if="${survey.status != T(org.ing.surveyhub.domain.SurveyStatus).DRAFT}">
         <div class="alert alert-success">
-            Anket tamamlandı — <strong th:text="${#lists.size(draftQuestions)}"></strong> soru kaydedildi
-            (önizleme amaçlı; gerçek kayıt backend'e bağlanınca veritabanına yazılacak).
+            Anket tamamlandı — <strong th:text="${#lists.size(survey.questions)}"></strong> soru kaydedildi.
         </div>
 
         <h2 class="h5 mb-3">Kaydedilen Sorular</h2>
-        <div th:each="q, stat : ${draftQuestions}" class="mb-3">
+        <div th:each="q, stat : ${survey.questions}" class="mb-3">
             <div class="text-muted small mb-1" th:text="|${stat.count}. soru|"></div>
-            <div th:replace="~{admin/questions/fragments/preview :: render(${q})}"></div>
+            <div th:replace="~{admin/questions/fragments/preview :: render(${q}, ${q.options.![text]})}"></div>
         </div>
 
-        <form method="post" th:action="@{/admin/questions/reset}" class="mt-3">
-            <button type="submit" class="btn btn-outline-primary">Yeni Anket Başlat</button>
-        </form>
+        <a th:href="@{/admin/surveys/new}" class="btn btn-outline-primary mt-3">Yeni Anket Başlat</a>
     </div>
 
-    <!-- Anket devam ediyorsa: eklenen sorular listesi + yeni soru formu -->
-    <div th:unless="${surveyFinished}">
+    <!-- Anket hâlâ taslaksa: eklenen sorular listesi + yeni soru formu -->
+    <div th:if="${survey.status == T(org.ing.surveyhub.domain.SurveyStatus).DRAFT}">
 
-        <div th:if="${!#lists.isEmpty(draftQuestions)}" class="mb-4">
-            <h2 class="h5 mb-3">Eklenen Sorular (<span th:text="${#lists.size(draftQuestions)}"></span>)</h2>
-            <div th:each="q, stat : ${draftQuestions}" class="mb-3">
+        <div th:if="${!#lists.isEmpty(survey.questions)}" class="mb-4">
+            <h2 class="h5 mb-3">Eklenen Sorular (<span th:text="${#lists.size(survey.questions)}"></span>)</h2>
+            <div th:each="q, stat : ${survey.questions}" class="mb-3">
                 <div class="text-muted small mb-1" th:text="|${stat.count}. soru|"></div>
-                <div th:replace="~{admin/questions/fragments/preview :: render(${q})}"></div>
+                <div th:replace="~{admin/questions/fragments/preview :: render(${q}, ${q.options.![text]})}"></div>
             </div>
         </div>
 
         <div th:if="${previewed}" class="mb-4">
             <h2 class="h6 mb-2">Önizleme</h2>
-            <div th:replace="~{admin/questions/fragments/preview :: render(${questionForm})}"></div>
+            <div th:replace="~{admin/questions/fragments/preview :: render(${questionForm}, ${questionForm.options})}"></div>
         </div>
 
-        <form method="post" th:action="@{/admin/questions/preview}" th:object="${questionForm}">
+        <form method="post" th:action="@{/admin/surveys/{surveyId}/questions/preview(surveyId=${survey.id})}"
+              th:object="${questionForm}">
 
             <div class="mb-3">
                 <label class="form-label" for="text">Soru Metni</label>
@@ -151,15 +149,17 @@
             </fieldset>
 
             <div class="d-flex gap-2">
-                <button type="submit" th:formaction="@{/admin/questions/preview}"
+                <button type="submit"
+                        th:formaction="@{/admin/surveys/{surveyId}/questions/preview(surveyId=${survey.id})}"
                         class="btn btn-outline-primary">Soruyu Önizle</button>
-                <button type="submit" th:formaction="@{/admin/questions/add}"
+                <button type="submit"
+                        th:formaction="@{/admin/surveys/{surveyId}/questions/add(surveyId=${survey.id})}"
                         class="btn btn-primary">Soru Ekle</button>
             </div>
         </form>
 
-        <form method="post" th:action="@{/admin/questions/finish}" class="mt-3"
-              th:if="${!#lists.isEmpty(draftQuestions)}">
+        <form method="post" th:action="@{/admin/surveys/{surveyId}/questions/finish(surveyId=${survey.id})}"
+              class="mt-3" th:if="${!#lists.isEmpty(survey.questions)}">
             <button type="submit" class="btn btn-success">Anketi Bitir</button>
         </form>
     </div>

@@ -1,84 +1,81 @@
 package org.ing.surveyhub.web;
 
-import jakarta.servlet.http.HttpSession;
 import org.ing.surveyhub.domain.QuestionType;
+import org.ing.surveyhub.domain.Survey;
+import org.ing.surveyhub.exception.SurveyValidationException;
+import org.ing.surveyhub.service.SurveyService;
 import org.ing.surveyhub.web.form.QuestionForm;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Sadece frontend akışını (soru ekle / önizle / anketi bitir) tasarlamak için.
- * Taslak sorular oturumda (HttpSession) tutulur — gerçek persistence (entity/repository/servis)
- * ayrı olarak eklenecek, bu controller o zaman değişecek.
+ * Bir anketin (Survey) sorularını ekleyen admin arayüzü. Artık gerçek kayıt yapıyor:
+ * "Soru Ekle" her tıklamada SurveyService üzerinden veritabanına yazıyor, "Anketi Bitir"
+ * anketi PUBLISHED yapıp düzenlemeyi kapatıyor (SurveyService.getEditableSurvey kuralı).
  */
 @Controller
-@RequestMapping("/admin/questions")
+@RequestMapping("/admin/surveys/{surveyId}/questions")
 public class QuestionFormController {
 
-    private static final String DRAFT_KEY = "draftQuestions";
-    private static final String FINISHED_KEY = "surveyFinished";
+    private final SurveyService surveyService;
+
+    public QuestionFormController(SurveyService surveyService) {
+        this.surveyService = surveyService;
+    }
 
     @GetMapping("/new")
-    public String newQuestion(Model model, HttpSession session) {
+    public String newQuestion(@PathVariable Long surveyId, Model model) {
+        model.addAttribute("survey", findSurveyOr404(surveyId));
         model.addAttribute("questionForm", new QuestionForm());
         model.addAttribute("questionTypes", QuestionType.values());
-        model.addAttribute("draftQuestions", draftList(session));
-        model.addAttribute("surveyFinished", isFinished(session));
         return "admin/questions/form";
     }
 
     @PostMapping("/preview")
-    public String preview(@ModelAttribute("questionForm") QuestionForm form, Model model, HttpSession session) {
+    public String preview(@PathVariable Long surveyId,
+                           @ModelAttribute("questionForm") QuestionForm form,
+                           Model model) {
+        model.addAttribute("survey", findSurveyOr404(surveyId));
         model.addAttribute("questionTypes", QuestionType.values());
-        model.addAttribute("draftQuestions", draftList(session));
-        model.addAttribute("surveyFinished", isFinished(session));
         model.addAttribute("previewed", true);
         return "admin/questions/form";
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("questionForm") QuestionForm form, HttpSession session) {
-        draftList(session).add(form);
-        return "redirect:/admin/questions/new";
+    public String add(@PathVariable Long surveyId,
+                       @ModelAttribute("questionForm") QuestionForm form,
+                       RedirectAttributes redirectAttributes) {
+        try {
+            surveyService.addQuestion(surveyId, form);
+        } catch (SurveyValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/surveys/" + surveyId + "/questions/new";
     }
 
     @PostMapping("/finish")
-    public String finish(HttpSession session, RedirectAttributes redirectAttributes) {
-        if (draftList(session).isEmpty()) {
-            redirectAttributes.addFlashAttribute("finishError", "Anketi bitirmek için en az 1 soru eklemelisiniz.");
-        } else {
-            session.setAttribute(FINISHED_KEY, Boolean.TRUE);
+    public String finish(@PathVariable Long surveyId, RedirectAttributes redirectAttributes) {
+        try {
+            surveyService.publish(surveyId);
+        } catch (SurveyValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/questions/new";
+        return "redirect:/admin/surveys/" + surveyId + "/questions/new";
     }
 
-    @PostMapping("/reset")
-    public String reset(HttpSession session) {
-        session.removeAttribute(DRAFT_KEY);
-        session.removeAttribute(FINISHED_KEY);
-        return "redirect:/admin/questions/new";
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<QuestionForm> draftList(HttpSession session) {
-        List<QuestionForm> list = (List<QuestionForm>) session.getAttribute(DRAFT_KEY);
-        if (list == null) {
-            list = new ArrayList<>();
-            session.setAttribute(DRAFT_KEY, list);
+    private Survey findSurveyOr404(Long surveyId) {
+        try {
+            return surveyService.getSurveyWithQuestions(surveyId);
+        } catch (SurveyValidationException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
-        return list;
-    }
-
-    private boolean isFinished(HttpSession session) {
-        Boolean finished = (Boolean) session.getAttribute(FINISHED_KEY);
-        return Boolean.TRUE.equals(finished);
     }
 }

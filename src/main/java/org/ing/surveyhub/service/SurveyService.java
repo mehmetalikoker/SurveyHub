@@ -6,6 +6,7 @@ import org.ing.surveyhub.domain.QuestionType;
 import org.ing.surveyhub.domain.Survey;
 import org.ing.surveyhub.domain.SurveyStatus;
 import org.ing.surveyhub.exception.SurveyValidationException;
+import org.ing.surveyhub.repository.QuestionRepository;
 import org.ing.surveyhub.repository.SurveyRepository;
 import org.ing.surveyhub.web.form.QuestionForm;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,28 @@ public class SurveyService {
     private static final Set<Integer> ALLOWED_LIKERT_SCALES = Set.of(3, 5, 7);
 
     private final SurveyRepository surveyRepository;
+    private final QuestionRepository questionRepository;
 
-    public SurveyService(SurveyRepository surveyRepository) {
+    public SurveyService(SurveyRepository surveyRepository, QuestionRepository questionRepository) {
         this.surveyRepository = surveyRepository;
+        this.questionRepository = questionRepository;
+    }
+
+    /**
+     * Admin ekranında (soru listesi + önizleme) göstermek için anketi, sorularını
+     * ve seçeneklerini tam yüklenmiş halde döner — open-in-view=false olduğundan
+     * bu, controller'dan ayrı, transaction sınırı içinde yapılmalı.
+     */
+    @Transactional(readOnly = true)
+    public Survey getSurveyWithQuestions(Long surveyId) {
+        Survey survey = surveyRepository.findByIdWithQuestions(surveyId)
+                .orElseThrow(() -> new SurveyValidationException("Anket bulunamadı: " + surveyId));
+        if (!survey.getQuestions().isEmpty()) {
+            // Aynı session'da ikinci fetch-join: Question.options'ı, survey.getQuestions()
+            // içindeki AYNI (persistence context'te identity-eşlenmiş) nesneler üzerinde doldurur.
+            questionRepository.findWithOptionsBySurveyId(surveyId);
+        }
+        return survey;
     }
 
     @Transactional

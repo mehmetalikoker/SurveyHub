@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="render(question)" class="card ing-preview-card mb-3">
+<div th:fragment="render(question, optionTexts)" class="card ing-preview-card mb-3">
     <div class="card-header">
         <strong th:text="${question.text}">Soru metni</strong>
     </div>
@@ -15,7 +15,7 @@
         <div th:switch="${question.type}">
 
             <div th:case="${T(org.ing.surveyhub.domain.QuestionType).MULTIPLE_CHOICE}">
-                <div class="form-check" th:each="opt : ${question.options}"
+                <div class="form-check" th:each="opt : ${optionTexts}"
                      th:if="${opt != null and !#strings.isEmpty(opt)}">
                     <input class="form-check-input" disabled
                            th:type="${question.allowMultipleSelection} ? 'checkbox' : 'radio'"/>

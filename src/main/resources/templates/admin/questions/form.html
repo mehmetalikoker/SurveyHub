@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Soru Ekle - SurveyHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+<div class="container py-5" style="max-width: 720px;">
+    <h1 class="h3 mb-4">Soru Ekle</h1>
+
+    <div th:if="${submitted}" class="mb-4">
+        <div class="alert alert-success py-2 mb-3">
+            Form verisi alındı (önizleme amaçlı — kayıt işlemi henüz backend'e bağlı değil).
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <strong>Katılımcı bunu şöyle görecek</strong>
+            </div>
+            <div class="card-body">
+                <h2 class="h5 mb-1" th:text="${questionForm.text}">Soru metni</h2>
+                <p class="text-muted small mb-3">
+                    <span th:text="${questionForm.type.label}">Tip</span>
+                    <span th:if="${questionForm.required}"> · Zorunlu</span>
+                    <span th:if="${questionForm.section}" th:text="' · ' + ${questionForm.section}"></span>
+                </p>
+
+                <div th:switch="${questionForm.type}">
+
+                    <div th:case="${T(org.ing.surveyhub.domain.QuestionType).MULTIPLE_CHOICE}">
+                        <div class="form-check" th:each="opt : ${questionForm.options}"
+                             th:if="${opt != null and !#strings.isEmpty(opt)}">
+                            <input class="form-check-input" disabled
+                                   th:type="${questionForm.allowMultipleSelection} ? 'checkbox' : 'radio'"/>
+                            <label class="form-check-label" th:text="${opt}"></label>
+                        </div>
+                    </div>
+
+                    <div th:case="${T(org.ing.surveyhub.domain.QuestionType).OPEN_ENDED}">
+                        <textarea class="form-control" rows="3" disabled placeholder="Katılımcı burada yazacak..."></textarea>
+                        <div class="form-text" th:if="${questionForm.maxLength}"
+                             th:text="'Maks. ' + ${questionForm.maxLength} + ' karakter'"></div>
+                    </div>
+
+                    <div th:case="${T(org.ing.surveyhub.domain.QuestionType).LIKERT}"
+                         class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="small text-muted" th:text="${questionForm.likertMinLabel}"></span>
+                        <span>
+                            <span class="badge rounded-pill bg-secondary mx-1"
+                                  th:each="i : ${#numbers.sequence(1, questionForm.likertScale)}"
+                                  th:text="${i}"></span>
+                        </span>
+                        <span class="small text-muted" th:text="${questionForm.likertMaxLabel}"></span>
+                    </div>
+
+                    <div th:case="${T(org.ing.surveyhub.domain.QuestionType).RATING}">
+                        <span class="fs-3 text-warning" style="letter-spacing: 4px;"
+                              th:each="i : ${#numbers.sequence(questionForm.minValue, questionForm.maxValue)}">&#9733;</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" th:action="@{/admin/questions/new}" th:object="${questionForm}">
+
+        <div class="mb-3">
+            <label class="form-label" for="text">Soru Metni</label>
+            <textarea class="form-control" id="text" th:field="*{text}" rows="2" required></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label" for="section">Bölüm (opsiyonel)</label>
+                <input type="text" class="form-control" id="section" th:field="*{section}"/>
+            </div>
+            <div class="col-md-4 mb-3 d-flex align-items-end">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="required" th:field="*{required}"/>
+                    <label class="form-check-label" for="required">Zorunlu soru</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="type">Soru Tipi</label>
+            <select class="form-select" id="type" th:field="*{type}">
+                <option th:each="qt : ${questionTypes}" th:value="${qt}" th:text="${qt.label}"></option>
+            </select>
+        </div>
+
+        <!-- Çoktan Seçmeli -->
+        <fieldset class="question-type-section border rounded p-3 mb-4" data-type="MULTIPLE_CHOICE">
+            <legend class="h6">Çoktan Seçmeli Ayarları</legend>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="allowMultipleSelection"
+                       th:field="*{allowMultipleSelection}"/>
+                <label class="form-check-label" for="allowMultipleSelection">Birden fazla seçime izin ver</label>
+            </div>
+
+            <label class="form-label">Seçenekler</label>
+            <div id="optionsContainer">
+                <div class="input-group mb-2 option-row" th:each="opt : *{options}">
+                    <input type="text" class="form-control" name="options" th:value="${opt}"
+                           placeholder="Seçenek metni"/>
+                    <button type="button" class="btn btn-outline-danger remove-option">Sil</button>
+                </div>
+            </div>
+            <button type="button" id="addOptionBtn" class="btn btn-sm btn-outline-secondary">+ Seçenek Ekle</button>
+        </fieldset>
+
+        <!-- Açık Uçlu -->
+        <fieldset class="question-type-section border rounded p-3 mb-4" data-type="OPEN_ENDED">
+            <legend class="h6">Açık Uçlu Ayarları</legend>
+            <div class="mb-2">
+                <label class="form-label" for="maxLength">Maksimum karakter (opsiyonel)</label>
+                <input type="number" class="form-control" id="maxLength" th:field="*{maxLength}" min="1"
+                       style="max-width: 160px;"/>
+            </div>
+        </fieldset>
+
+        <!-- Likert -->
+        <fieldset class="question-type-section border rounded p-3 mb-4" data-type="LIKERT">
+            <legend class="h6">Likert Ayarları</legend>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" for="likertScale">Ölçek</label>
+                    <select class="form-select" id="likertScale" th:field="*{likertScale}">
+                        <option value="3">3'lü</option>
+                        <option value="5">5'li</option>
+                        <option value="7">7'li</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" for="likertMinLabel">En düşük uç etiketi</label>
+                    <input type="text" class="form-control" id="likertMinLabel" th:field="*{likertMinLabel}"/>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" for="likertMaxLabel">En yüksek uç etiketi</label>
+                    <input type="text" class="form-control" id="likertMaxLabel" th:field="*{likertMaxLabel}"/>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Derecelendirme -->
+        <fieldset class="question-type-section border rounded p-3 mb-4" data-type="RATING">
+            <legend class="h6">Derecelendirme Ayarları</legend>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" for="minValue">Min. değer</label>
+                    <input type="number" class="form-control" id="minValue" th:field="*{minValue}"/>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" for="maxValue">Maks. değer</label>
+                    <input type="number" class="form-control" id="maxValue" th:field="*{maxValue}"/>
+                </div>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+</div>
+
+<script th:inline="none">
+    (function () {
+        var typeSelect = document.getElementById('type');
+        var sections = document.querySelectorAll('.question-type-section');
+
+        function syncVisibleSection() {
+            var selected = typeSelect.value;
+            sections.forEach(function (section) {
+                section.style.display = (section.dataset.type === selected) ? '' : 'none';
+            });
+        }
+
+        typeSelect.addEventListener('change', syncVisibleSection);
+        syncVisibleSection();
+
+        var optionsContainer = document.getElementById('optionsContainer');
+
+        function wireRemoveButton(button) {
+            button.addEventListener('click', function () {
+                button.closest('.option-row').remove();
+            });
+        }
+
+        optionsContainer.querySelectorAll('.remove-option').forEach(wireRemoveButton);
+
+        document.getElementById('addOptionBtn').addEventListener('click', function () {
+            var row = document.createElement('div');
+            row.className = 'input-group mb-2 option-row';
+            row.innerHTML =
+                '<input type="text" class="form-control" name="options" placeholder="Seçenek metni"/>' +
+                '<button type="button" class="btn btn-outline-danger remove-option">Sil</button>';
+            optionsContainer.appendChild(row);
+            wireRemoveButton(row.querySelector('.remove-option'));
+        });
+    })();
+</script>
+</body>
+</html>

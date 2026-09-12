@@ -111,6 +111,7 @@
 
             <div class="alert alert-danger" th:if="${param.error}">Kullanıcı adı veya parola hatalı.</div>
             <div class="alert alert-success" th:if="${param.logout}">Çıkış yapıldı.</div>
+            <div class="alert alert-warning" th:if="${param.expired}">Oturumunuz başka bir yerden yapılan girişle sona erdi, lütfen tekrar giriş yapın.</div>
 
             <form method="post" th:action="@{/login}">
                 <div class="mb-3">

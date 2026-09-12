@@ -89,8 +89,10 @@ public class SurveyService {
         if (survey.getQuestions().isEmpty()) {
             throw new SurveyValidationException("Anketi yayınlamak için en az 1 soru eklemelisiniz.");
         }
+        Instant now = Instant.now();
         survey.setStatus(SurveyStatus.PUBLISHED);
-        survey.setPublishedAt(Instant.now());
+        survey.setPublishedAt(now);
+        survey.setUpdatedAt(now);
         return surveyRepository.save(survey);
     }
 

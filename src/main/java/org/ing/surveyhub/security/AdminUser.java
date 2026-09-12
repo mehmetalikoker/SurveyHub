@@ -7,6 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Duration;
+import java.time.Instant;
+
 @Entity
 @Table(name = "admin_user")
 public class AdminUser {
@@ -24,6 +27,11 @@ public class AdminUser {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Column(nullable = false)
+    private int failedAttempts = 0;
+
+    private Instant lockedUntil;
+
     protected AdminUser() {
         // JPA
     }
@@ -31,6 +39,31 @@ public class AdminUser {
     public AdminUser(String username, String passwordHash) {
         this.username = username;
         this.passwordHash = passwordHash;
+    }
+
+    /**
+     * Kilit süresi dolmuşsa (lockedUntil geçmişte kaldıysa) hesap artık kilitli
+     * sayılmaz — sayaç bir sonraki başarısız denemede registerFailedAttempt
+     * tarafından sıfırlanır.
+     */
+    public boolean isLocked(Instant now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
+
+    public void registerFailedAttempt(int maxAttempts, Duration lockDuration, Instant now) {
+        if (lockedUntil != null && !lockedUntil.isAfter(now)) {
+            failedAttempts = 0;
+            lockedUntil = null;
+        }
+        failedAttempts++;
+        if (failedAttempts >= maxAttempts) {
+            lockedUntil = now.plus(lockDuration);
+        }
+    }
+
+    public void resetFailedAttempts() {
+        failedAttempts = 0;
+        lockedUntil = null;
     }
 
     public Long getId() {
@@ -51,5 +84,13 @@ public class AdminUser {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public int getFailedAttempts() {
+        return failedAttempts;
+    }
+
+    public Instant getLockedUntil() {
+        return lockedUntil;
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class AdminUserDetailsService implements UserDetailsService {
 
@@ -25,6 +27,7 @@ public class AdminUserDetailsService implements UserDetailsService {
                 .password(user.getPasswordHash())
                 .authorities("ROLE_ADMIN")
                 .disabled(!user.isEnabled())
+                .accountLocked(user.isLocked(Instant.now()))
                 .build();
     }
 }

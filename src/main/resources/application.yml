@@ -13,17 +13,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
 
 server:
   port: 8080
 
 surveyhub:
-  api:
-    key: ${SURVEYHUB_API_KEY:dev-key}
   admin:
     username: ${SURVEYHUB_ADMIN_USERNAME:admin}
     password: ${SURVEYHUB_ADMIN_PASSWORD:changeme}
